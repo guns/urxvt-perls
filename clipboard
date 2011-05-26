@@ -17,16 +17,19 @@
 
 use strict;
 
+my $copy_cmd  = ($^O eq 'darwin') ? 'pbcopy'  : 'xsel -ib';
+my $paste_cmd = ($^O eq 'darwin') ? 'pbpaste' : 'xsel -ob';
+
 sub copy {
 	my ($self) = @_;
 
-	if (open(CLIPBOARD, "| xsel -ib")) {
+	if (open(CLIPBOARD, "| $copy_cmd")) {
 		my $sel = $self->selection();
 		utf8::encode($sel);
 		print CLIPBOARD $sel;
 		close(CLIPBOARD);
 	} else {
-		print STDERR "Error running xsel: $!\n";
+		print STDERR "Error running $copy_cmd: $!\n";
 	}
 
 	()
@@ -35,11 +38,11 @@ sub copy {
 sub paste {
 	my ($self) = @_;
 
-	my $str = `xsel -ob`;
+	my $str = `$paste_cmd`;
 	if ($? == 0) {
 		$self->tt_paste($self->locale_encode($str));
 	} else {
-		print STDERR "Error running xsel: $!\n";
+		print STDERR "Error running $paste_cmd: $!\n";
 	}
 
 	()
@@ -48,12 +51,12 @@ sub paste {
 sub paste_escaped {
 	my ($self) = @_;
 
-	my $str = `xsel -ob`;
+	my $str = `$paste_cmd`;
 	if ($? == 0) {
 		$str =~ s/([!#\$%&\*\(\) ='"\\\|\[\]`~,<>\?])/\\\1/g;
 		$self->tt_paste($self->locale_encode($str));
 	} else {
-		print STDERR "Error running xsel: $!\n";
+		print STDERR "Error running $paste_cmd: $!\n";
 	}
 
 	()
