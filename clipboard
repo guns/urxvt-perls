@@ -31,8 +31,12 @@ use strict;
 sub on_start {
 	my ($self) = @_;
 
-	$self->{copy_cmd} = $self->x_resource('copyCommand') || 'xsel -ib';
-	$self->{paste_cmd} = $self->x_resource('pasteCommand') || 'xsel -ob';
+	my $have_xsel = system('command -v xsel &>/dev/null');
+	my $copy_cmd  = (($^O eq 'darwin') ? 'pbcopy'  : ($have_xsel ? 'xsel -ib' : 'xclip -i -selection clipboard'));
+	my $paste_cmd = (($^O eq 'darwin') ? 'pbpaste' : ($have_xsel ? 'xsel -ob' : 'xclip -o -selection clipboard'));
+
+	$self->{copy_cmd}  = $self->x_resource('copyCommand')  || $copy_cmd;
+	$self->{paste_cmd} = $self->x_resource('pasteCommand') || $paste_cmd;
 
 	()
 }
